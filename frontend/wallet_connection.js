@@ -4,8 +4,6 @@ const BOT_API_URL = 'http://localhost:8080'
 var accounts
 var web3
 
-// ETHEREUM WALLET CONNECTION
-
 // If the wallet is changed, reload the page
 function metamaskReloadCallback() {
   window.ethereum.on('accountsChanged', (accounts) => {
@@ -91,70 +89,5 @@ async function connectWallet() {
 const onWalletConnectedCallback = async () => {
 }
 
-// ERC712 FUNCTIONS
-
-// Sign the message using the ERC712 format
-async function signMessage(userId, message)
-{
-  const msgParams = JSON.stringify({
-    types: {
-      EIP712Domain: [
-        { name: 'name', type: 'string' },
-        { name: 'version', type: 'string' },
-        { name: 'chainId', type: 'uint256' },
-      ],
-      AccessRequest: [
-        { name: 'userId', type: 'uint256' },
-        { name: 'message', type: 'string' }
-      ],
-    },
-    primaryType: 'AccessRequest',
-    domain: {
-      name: 'Telegram Group Access',
-      version: '1',
-      chainId: NETWORK_ID,
-    },
-    message: {
-      userId: userId,
-      message: message,
-    },
-  });
-
-  const signature = await ethereum.request({
-    method: "eth_signTypedData_v4",
-    params: [accounts[0], msgParams],
-  });
-
-  document.getElementById("signature").textContent="Signature: " + signature;
-
-  await relayGreeting(userId, message, signature);
-}
-
-async function relayGreeting(userId, message, signature) {
-  const requestData = {
-    userId: userId,
-    message: message,
-    signature: signature
-  };
-
-  try {
-    const response = await fetch(BOT_API_URL + '/verify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestData)
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    alert("Message sent successfully!");
-  } catch (error) {
-    console.error('Error:', error);
-    alert("Failed to send message: " + error.message);
-  }
-}
-
+// Start the wallet connection
 loadDapp()
